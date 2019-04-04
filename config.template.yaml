@@ -2,3 +2,6 @@ SupportBee:
     url: https://account.supportbee.com
     token: YOUR_TOKEN
     per_page: 50
+    export_folder: /home/you/your/backup/beekeeper
+    download_threads: 5
+    timeout: 60
