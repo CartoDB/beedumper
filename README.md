@@ -15,8 +15,8 @@ That should leave your folder ready to start using `poetry run beekeeper` to exe
 
 ## `beekeeper` CLI command
 
-```sh
-poetry run beekeeper -h
+```txt
+$ poetry run beekeeper -h
 Usage: beekeeper [OPTIONS] COMMAND [ARGS]...
 
   This command line tool helps you export your SupportBee account data.
