@@ -1,0 +1,4 @@
+SupportBee:
+    url: https://account.supportbee.com
+    token: YOUR_TOKEN
+    per_page: 50
