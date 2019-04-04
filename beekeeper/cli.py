@@ -69,7 +69,7 @@ def save_comments(exporter, ticket_file):
         content = json.dumps(comments)
         writer.write(content)
 
-def save_attachments(token, timeout, ticket_file):
+def save_attachments(token, timeout, ticket_file, force = False):
     parent = ticket_file.parent
     attachments_folder = parent.joinpath('attachments')
 
@@ -83,15 +83,19 @@ def save_attachments(token, timeout, ticket_file):
         attachments_folder.mkdir(exist_ok=True)
         for attachment in attachments:
             url = attachment['url']['original'] + '?auth_token={0}'.format(token)
-            r = requests.get(url, timeout=timeout)
             fname = attachment['filename']
             attachment_file = attachments_folder.joinpath(fname)
-            with attachment_file.open('wb') as writer:
-                writer.write(r.content)
+            
+            if force or not attachment_file.exists():
+                r = requests.get(url, timeout=timeout)
+                with attachment_file.open('wb') as writer:
+                    writer.write(r.content)
+            else:
+                logger.debug('Skipping {}'.format(str(attachment_file)))
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option('-l', '--loglevel', type=click.Choice(['error', 'warn', 'info', 'debug']), default='warn')
-@click.option('-c', '--config', type=click.Path(exists=True), default=os.path.realpath('config.yaml'))
+@click.option('-c', '--config', type=click.Path(exists=True), default=os.path.realpath('config.yaml'), help="Defaults to current folder \"config.yaml\"")
 @click.version_option(VERSION, '--version', '-v')
 @click.pass_context
 def cli(ctx, loglevel, config):
@@ -130,7 +134,12 @@ def users(ctx):
     obj = ctx.obj['exporter']
     try:
         users = obj.get_users()
-        click.echo(json.dumps(users))
+        EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
+        users_file = EXPORT_FOLDER.joinpath('users.json')
+        with users_file.open('w') as writer:
+            writer.write(json.dumps(users))
+        click.echo('Users exported to {}'.format(str(users_file)))
+
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -142,7 +151,11 @@ def labels(ctx):
     obj = ctx.obj['exporter']
     try:
         labels = obj.get_labels()
-        click.echo(json.dumps(labels))
+        EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
+        labels_file = EXPORT_FOLDER.joinpath('labels.json')
+        with labels_file.open('w') as writer:
+            writer.write(json.dumps(labels))
+        click.echo('Labels exported to {}'.format(str(labels_file)))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -153,7 +166,11 @@ def teams(ctx):
     obj = ctx.obj['exporter']
     try:
         teams = obj.get_teams()
-        click.echo(json.dumps(teams))
+        EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
+        teams_file = EXPORT_FOLDER.joinpath('teams.json')
+        with teams_file.open('w') as writer:
+            writer.write(json.dumps(teams))
+        click.echo('Teams exported to {}'.format(str(teams_file)))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -164,7 +181,11 @@ def snippets(ctx):
     obj = ctx.obj['exporter']
     try:
         snippets = obj.get_snippets()
-        click.echo(json.dumps(snippets))
+        EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
+        snippets_file = EXPORT_FOLDER.joinpath('snippets.json')
+        with snippets_file.open('w') as writer:
+            writer.write(json.dumps(snippets))
+        click.echo('Snippets exported to {}'.format(str(snippets_file)))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -175,7 +196,11 @@ def emails(ctx):
     obj = ctx.obj['exporter']
     try:
         emails = obj.get_emails()
-        click.echo(json.dumps(emails))
+        EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
+        emails_file = EXPORT_FOLDER.joinpath('emails.json')
+        with emails_file.open('w') as writer:
+            writer.write(json.dumps(emails))
+        click.echo('Emails exported to {}'.format(str(emails_file)))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -235,8 +260,9 @@ def export_comments(ctx):
 
 
 @cli.command(help="Exports all attachments from the tickets stored")
+@click.option('-f', '--force', is_flag=True, help="Don't skip downloaded files")
 @click.pass_context
-def export_attachments(ctx):
+def export_attachments(ctx, force):
     obj = ctx.obj['exporter']
     config = obj.get_config()
     EXPORT_FOLDER = Path(config['export_folder'])
@@ -250,7 +276,7 @@ def export_attachments(ctx):
     
     # Enrich the function with config data
     def save(ticket):
-        save_attachments(TOKEN, TIMEOUT, ticket)
+        save_attachments(TOKEN, TIMEOUT, ticket, force)
 
     with Pool(PROCS) as p:
         logger.info('Starting the download...')
