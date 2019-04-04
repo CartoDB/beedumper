@@ -1,3 +1,3 @@
-# SupportBee export tool
+# beekeeper
 
-A small project to allow automatic export of SupportBee data
+A tool to export data from SupportBee ticketing tool
