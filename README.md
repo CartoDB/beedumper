@@ -1,21 +1,17 @@
-# beedumper
+# beedumper: backup your SupportBee data
 
-A tool to export data from SupportBee ticketing tool
+A tool to backup all your data from [SupportBee](https://supportbee.com) ticketing tool
 
 ## Install
 
-This is not uploaded to pip (yet) so you need to set up your environment like this:
+The package is published at PyPi as [beedumper](https://pypi.org/project/beedumper) so you can run `pip install beedumper` on your Python 3.6 environment to install the main command line interface. Alternatively you can also import  `beedumper.export.Exporter` class and work directly with the different methods outside the implemented [`cli`](https://github.com/CartoDB/beedumper/blob/master/beedumper/cli.py) logic.
 
-* Clone this repo
-* Install `poetry`: `pip install --user poetry`
-* `poetry install`
-
-That should leave your folder ready to start using `poetry run beedumper` to execute the main command line interface but you can also import `beedumper.export.Exporter` class and work directly with the different methods.
+**Note**: This tool requires python 3.6 or later to run.
 
 ## `beedumper` CLI command
 
 ```txt
-$ poetry run beedumper -h
+$ beedumper -h
 Usage: beedumper [OPTIONS] COMMAND [ARGS]...
 
   This command line tool helps you export your SupportBee account data.
