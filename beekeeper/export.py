@@ -19,8 +19,7 @@ class Exporter(object):
         if r.status_code == 200:
             return r.json()
         else:
-            import ipdb; ipdb.set_trace()
-            raise Exception(r.text)
+            raise Exception('Status code: {}\r\nError: {}'.format(r.status_code,r.text))
     
     def get_users(self):
         data = self.get_data('/users', params={'with_invited' : True})
@@ -42,17 +41,23 @@ class Exporter(object):
         data = self.get_data('/emails')
         return data['forwarding_addresses']
     
-    def get_tickets(self, per_page=100):
+    def get_tickets(self, per_page=100, since_date=None):
         tickets = namedtuple('tickets',['page','total_pages','data'])
         more_pages = True
         page = 0
         while more_pages:
             page += 1
-            results = self.get_data('/tickets', params={
+
+            params = {
                 'per_page': per_page,
                 'page'    : page,
                 'archived': True
-            })
+            }
+
+            if since_date != None :
+                params['since'] = since_date
+
+            results = self.get_data('/tickets', params=params)
             
             if results['current_page'] >= results['total_pages']:
                 more_pages = False
