@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "beekeeper"
-version = "0.1.0"
+name = "beedumper"
+version = "0.1.1"
 description = "Exporting SupportBee data for better integration with other ticketing tools"
 authors = ["Jorge Sanz <jsanz@carto.com>"]
 license = "MIT"
@@ -21,7 +21,7 @@ matplotlib = "^3.0"
 dateparser = "^0.7.1"
 
 [tool.poetry.scripts]
-beekeeper = "beekeeper.cli:cli"
+beedumper = "beedumper.cli:cli"
 
 
 [build-system]

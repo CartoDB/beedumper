@@ -1,4 +1,4 @@
-# beekeeper
+# beedumper
 
 A tool to export data from SupportBee ticketing tool
 
@@ -10,13 +10,13 @@ This is not uploaded to pip (yet) so you need to set up your environment like th
 * Install `poetry`: `pip install --user poetry`
 * `poetry install`
 
-That should leave your folder ready to start using `poetry run beekeeper` to execute the main command line interface but you can also import `beekeeper.export.Exporter` class and work directly with the different methods.
+That should leave your folder ready to start using `poetry run beedumper` to execute the main command line interface but you can also import `beedumper.export.Exporter` class and work directly with the different methods.
 
-## `beekeeper` CLI command
+## `beedumper` CLI command
 
 ```txt
-$ poetry run beekeeper -h
-Usage: beekeeper [OPTIONS] COMMAND [ARGS]...
+$ poetry run beedumper -h
+Usage: beedumper [OPTIONS] COMMAND [ARGS]...
 
   This command line tool helps you export your SupportBee account data.
 
@@ -42,7 +42,7 @@ Commands:
   users               Exports the users
 ```
 
-Check the [example configuration](https://github.com/CartoDB/beekeeper/blob/master/config.template.yaml) to set up your `config.yaml` file with SupportBee credentials and other settings.
+Check the [example configuration](https://github.com/CartoDB/beedumper/blob/master/config.template.yaml) to set up your `config.yaml` file with SupportBee credentials and other settings.
 
 Some subcommands may have further options, use `-h` to find out more about them.
 

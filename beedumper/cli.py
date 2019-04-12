@@ -1,5 +1,5 @@
-from beekeeper import VERSION
-from beekeeper.export import Exporter
+from beedumper import VERSION
+from beedumper.export import Exporter
 
 import sys
 import os
@@ -23,7 +23,7 @@ logging.basicConfig(
     level=logging.WARNING,
     format=' %(asctime)s [%(levelname)-7s] %(message)s',
     datefmt='%I:%M:%S %p')
-logger = logging.getLogger('beekeeper')
+logger = logging.getLogger('beedumper')
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
