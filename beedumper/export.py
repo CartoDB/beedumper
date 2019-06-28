@@ -51,7 +51,7 @@ class Exporter(object):
             params = {
                 'per_page': per_page,
                 'page'    : page,
-                'archived': True
+                'archived': 'any'
             }
 
             if since_date != None :
