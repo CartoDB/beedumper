@@ -37,6 +37,7 @@ RESULTS_DOWNLOAD = 1
 RESULTS_SKIPPED = 2
 RESULTS_OLD = 3
 
+
 class DownloadFiles(object):
     __slots__ = 'downloaded', 'skipped',
 
@@ -48,7 +49,8 @@ class DownloadFiles(object):
         self.downloaded += 1
 
     def add_skippped(self):
-        self.skipped +=1
+        self.skipped += 1
+
 
 def get_folder_old(base_directory, ticket):
     id = ticket['id']
@@ -62,6 +64,7 @@ def get_folder_old(base_directory, ticket):
     id.mkdir(parents=True, exist_ok=True)
 
     return id
+
 
 def get_folder(base_directory, ticket):
     id = int(ticket['id'])
@@ -79,6 +82,7 @@ def save_ticket(base_directory, ticket):
     with ticket_file.open('w') as writer:
         writer.write(json.dumps(ticket))
 
+
 def check_ticket_activity(ticket_obj, since_date):
     if 'last_activity_at' in ticket_obj and ticket_obj['last_activity_at'] != None:
         last_activity = dateutil.parser.parse(ticket_obj['last_activity_at'])
@@ -86,6 +90,7 @@ def check_ticket_activity(ticket_obj, since_date):
         last_activity = pytz.utc.localize(datetime.now())
 
     return last_activity > since_date
+
 
 def save_replies(exporter, ticket_file, since_date, force):
     try:
@@ -113,11 +118,12 @@ def save_replies(exporter, ticket_file, since_date, force):
     except Exception as e:
         logger.error(e)
 
+
 def save_comments(exporter, ticket_file, since_date, force):
     try:
         with ticket_file.open('r') as reader:
             ticket_obj = json.loads(reader.read())
-            
+
         if check_ticket_activity(ticket_obj, since_date):
             parent = ticket_file.parent
             comments_file = parent.joinpath('comments.json')
@@ -137,14 +143,16 @@ def save_comments(exporter, ticket_file, since_date, force):
         else:
             return RESULTS_OLD
     except Exception as e:
-        logger.error('Error when processing ticket {}\r\n{}'.format(ticket_file.parent,str(e)))
+        logger.error('Error when processing ticket {}\r\n{}'.format(
+            ticket_file.parent, str(e)))
+
 
 def save_attachments(token, timeout, ticket_file, since_date, force=False):
     with ticket_file.open('r') as reader:
         ticket_obj = json.loads(reader.read())
-    
+
     results = DownloadFiles()
-        
+
     if check_ticket_activity(ticket_obj, since_date):
         parent = ticket_file.parent
         attachments_folder = parent.joinpath('attachments')
@@ -169,11 +177,13 @@ def save_attachments(token, timeout, ticket_file, since_date, force=False):
                         results.add_downloaded()
 
                     else:
-                        logger.debug('Skipping {}'.format(str(attachment_file)))
+                        logger.debug('Skipping {}'.format(
+                            str(attachment_file)))
                         results.add_skippped()
 
                 except Exception as e:
-                    logger.error('Error when processing attachment {}\r\n{}'.format(url,str(e)))
+                    logger.error(
+                        'Error when processing attachment {}\r\n{}'.format(url, str(e)))
 
         replies_file = parent.joinpath('replies.json')
         if replies_file.exists():
@@ -183,13 +193,15 @@ def save_attachments(token, timeout, ticket_file, since_date, force=False):
                     if 'content' in reply:
                         r_attachments = reply['content']['attachments']
                         if len(r_attachments) > 0:
-                            logger.debug('{} reply attachments to download'.format(len(r_attachments)))
+                            logger.debug('{} reply attachments to download'.format(
+                                len(r_attachments)))
                             r_attachments_folder.mkdir(exist_ok=True)
                             for attachment in r_attachments:
                                 url = attachment['url']['original'] + \
                                     '?auth_token={0}'.format(token)
                                 fname = attachment['filename']
-                                attachment_file = r_attachments_folder.joinpath(fname)
+                                attachment_file = r_attachments_folder.joinpath(
+                                    fname)
                                 try:
                                     if force or not attachment_file.exists():
                                         r = requests.get(url, timeout=timeout)
@@ -197,11 +209,14 @@ def save_attachments(token, timeout, ticket_file, since_date, force=False):
                                             writer.write(r.content)
                                         results.add_downloaded()
                                     else:
-                                        logger.debug('Skipping {}'.format(str(attachment_file)))
+                                        logger.debug('Skipping {}'.format(
+                                            str(attachment_file)))
                                         results.add_skippped()
                                 except Exception as e:
-                                    logger.error('Error when processing attachment {}\r\n{}'.format(url,str(e)))
+                                    logger.error(
+                                        'Error when processing attachment {}\r\n{}'.format(url, str(e)))
     return results
+
 
 def validate_date(ctx, param, value):
     try:
@@ -258,7 +273,8 @@ def users(ctx):
         users_file = EXPORT_FOLDER.joinpath('users.json')
         with users_file.open('w') as writer:
             writer.write(json.dumps(users))
-        click.echo('{} users exported to {}'.format(len(users),  click.format_filename(str(users_file))))
+        click.echo('{} users exported to {}'.format(
+            len(users),  click.format_filename(str(users_file))))
 
     except Exception as e:
         click.secho(str(e), fg='red')
@@ -275,7 +291,8 @@ def labels(ctx):
         labels_file = EXPORT_FOLDER.joinpath('labels.json')
         with labels_file.open('w') as writer:
             writer.write(json.dumps(labels))
-        click.echo('{} labels exported to {}'.format(len(labels), click.format_filename(str(labels_file))))
+        click.echo('{} labels exported to {}'.format(
+            len(labels), click.format_filename(str(labels_file))))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -291,7 +308,8 @@ def teams(ctx):
         teams_file = EXPORT_FOLDER.joinpath('teams.json')
         with teams_file.open('w') as writer:
             writer.write(json.dumps(teams))
-        click.echo('{} teams exported to {}'.format(len(teams), click.format_filename(str(teams_file))))
+        click.echo('{} teams exported to {}'.format(
+            len(teams), click.format_filename(str(teams_file))))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -307,7 +325,8 @@ def snippets(ctx):
         snippets_file = EXPORT_FOLDER.joinpath('snippets.json')
         with snippets_file.open('w') as writer:
             writer.write(json.dumps(snippets))
-        click.echo('{} snippets exported to {}'.format(len(snippets), click.format_filename(str(snippets_file))))
+        click.echo('{} snippets exported to {}'.format(
+            len(snippets), click.format_filename(str(snippets_file))))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -323,7 +342,8 @@ def emails(ctx):
         emails_file = EXPORT_FOLDER.joinpath('emails.json')
         with emails_file.open('w') as writer:
             writer.write(json.dumps(emails))
-        click.echo('{} emails exported to {}'.format(len(emails),  click.format_filename(str(emails_file))))
+        click.echo('{} emails exported to {}'.format(
+            len(emails),  click.format_filename(str(emails_file))))
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
@@ -338,21 +358,24 @@ def export_tickets(ctx, since_date):
     EXPORT_FOLDER = Path(obj.get_config()['export_folder'])
     # Create the base folder if it does not exist
     EXPORT_FOLDER.mkdir(parents=True, exist_ok=True)
-    
-    tickets_iterator = obj.get_tickets(per_page=TICKETS_PAGE, since_date=since_date.isoformat())
+
+    tickets_iterator = obj.get_tickets(
+        per_page=TICKETS_PAGE, since_date=since_date.isoformat())
 
     result = next(tickets_iterator)
-    click.echo('{} pages of {} tickets each to download'.format(result.total_pages, TICKETS_PAGE))
-    with click.progressbar(length= result.total_pages * TICKETS_PAGE,
-                        label='Downloading tickets') as bar:
+    click.echo('{} pages of {} tickets each to download'.format(
+        result.total_pages, TICKETS_PAGE))
+    with click.progressbar(length=result.total_pages * TICKETS_PAGE,
+                           label='Downloading tickets') as bar:
         while result:
             bar.update(result.page * TICKETS_PAGE)
             tickets = result.data
             # click.echo('{:3d}|{:3d}|{:3d}'.format(result.page, result.total_pages, len(tickets)))
             for ticket in tickets:
                 save_ticket(EXPORT_FOLDER, ticket)
-            
+
             result = next(tickets_iterator, False)
+
 
 @cli.command(help="Exports all replies from the tickets stored")
 @click.option('-s', '--since-date', callback=validate_date, default='2000-01-01', help="Date since you want to export data in ISO format, example: 2017-11-28")
@@ -376,7 +399,8 @@ def export_replies(ctx, since_date, force):
     writes = results.count(RESULTS_DOWNLOAD)
     processed = results.count(RESULTS_SKIPPED) + writes
     total = results.count(RESULTS_OLD) + processed
-    click.echo('Wrote {} out of {} checked replies from {} processed tickets'.format(writes, processed, total))
+    click.echo('Wrote {} out of {} checked replies from {} processed tickets'.format(
+        writes, processed, total))
 
 
 @cli.command(help="Exports all comments from the tickets stored")
@@ -402,7 +426,9 @@ def export_comments(ctx, since_date, force):
     writes = results.count(RESULTS_DOWNLOAD)
     processed = results.count(RESULTS_SKIPPED) + writes
     total = results.count(RESULTS_OLD) + processed
-    click.echo('Wrote {} out of {} checked comments from {} processed tickets'.format(writes, processed, total))
+    click.echo('Wrote {} out of {} checked comments from {} processed tickets'.format(
+        writes, processed, total))
+
 
 @cli.command(help="Exports all attachments from the tickets stored")
 @click.option('-s', '--since-date', callback=validate_date, default='2000-01-01', help="Date since you want to export data in ISO format, example: 2017-11-28")
@@ -437,23 +463,24 @@ def export_attachments(ctx, force, since_date):
 @click.option('-f', '--force', is_flag=True, help="Don't skip downloaded files")
 @click.pass_context
 def all_metadata(ctx, force):
-    click.secho('# Exporting account metadata',fg='green')
+    click.secho('# Exporting account metadata', fg='green')
     ctx.invoke(labels)
     ctx.invoke(snippets)
     ctx.invoke(teams)
     ctx.invoke(users)
 
+
 @cli.command(help="Export all ticket info: tickets, replies, comments and attachments")
 @click.option('-s', '--since-date', callback=validate_date, default='2000-01-01', help="Date since you want to export data in ISO format, example: 2017-11-28")
 @click.pass_context
 def all_tickets(ctx, since_date):
-    click.secho('# Exporting tickets',fg='green')
+    click.secho('# Exporting tickets', fg='green')
     ctx.invoke(export_tickets, since_date=since_date)
-    click.secho('# Exporting replies',fg='green')
+    click.secho('# Exporting replies', fg='green')
     ctx.invoke(export_replies, since_date=since_date, force=True)
-    click.secho('# Exporting comments',fg='green')
+    click.secho('# Exporting comments', fg='green')
     ctx.invoke(export_comments, since_date=since_date, force=True)
-    click.secho('# Exporting attachments',fg='green')
+    click.secho('# Exporting attachments', fg='green')
     ctx.invoke(export_attachments, since_date=since_date, force=False)
 
 
@@ -463,8 +490,6 @@ def all_tickets(ctx, since_date):
 def all(ctx, since_date):
     ctx.invoke(all_metadata)
     ctx.invoke(all_tickets, since_date=since_date)
-
-
 
 
 @cli.command(help="Exports the tickets main details as a CSV file")
@@ -479,10 +504,9 @@ def export_csv(ctx):
         # Get the current tickets
         click.echo('Getting the list of tickets to read....')
         export_csv = EXPORT_FOLDER.joinpath('tickets.csv')
-        tickets_files = list(EXPORT_FOLDER.joinpath('tickets').glob('**/ticket.json'))
+        tickets_files = list(EXPORT_FOLDER.joinpath(
+            'tickets').glob('**/ticket.json'))
         click.echo('{} tickets to process'.format(len(tickets_files)))
-    
-
 
         def process(ticket_file):
             with ticket_file.open('r') as reader:
@@ -499,12 +523,13 @@ def export_csv(ctx):
                     'attachments_count': len(t['content']['attachments']) if t['content']['attachments'] != None else 0,
                     'labels': ', '.join(map(lambda l: l['name'], t['labels'])),
                     'requester': t['requester']['email'],
-                    'team':  t['current_team_assignee']['team']['name'] if t['current_team_assignee'] != None and 'team' in t['current_team_assignee'] else 'Support' ,
+                    'team':  t['current_team_assignee']['team']['name'] if t['current_team_assignee'] != None and 'team' in t['current_team_assignee'] else 'Support',
                     'cc': ', '.join((map(lambda x: x['email'], t['cc'])))
                 }
 
         with Pool(PROCS) as p:
-            click.echo('Exporting tickets to {}...'.format(click.format_filename(str(export_csv))))
+            click.echo('Exporting tickets to {}...'.format(
+                click.format_filename(str(export_csv))))
             click.echo('Starting the extraction...')
             results = p.map(process, tickets_files)
 
@@ -512,7 +537,7 @@ def export_csv(ctx):
         sorted_results = sorted(results, key=lambda t: t['created_at'])
 
         # Export to CSV
-                
+
         with export_csv.open('w') as csvfile:
             fieldnames = [
                 'id',
@@ -534,9 +559,9 @@ def export_csv(ctx):
 
             writer.writeheader()
             writer.writerows(sorted_results)
-        
+
         click.echo('{} tickets processed'.format(len(sorted_results)))
-        
+
     except Exception as e:
         click.secho(str(e), fg='red')
         ctx.abort()
