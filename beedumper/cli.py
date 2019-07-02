@@ -14,10 +14,12 @@ from yaml import load, CLoader as Loader
 from pathos.multiprocessing import ProcessPool as Pool
 import re
 import requests
+import csv
 
 from datetime import datetime
 import dateutil.parser
 import pytz
+import dateparser
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -461,3 +463,80 @@ def all_tickets(ctx, since_date):
 def all(ctx, since_date):
     ctx.invoke(all_metadata)
     ctx.invoke(all_tickets, since_date=since_date)
+
+
+
+
+@cli.command(help="Exports the tickets main details as a CSV file")
+@click.pass_context
+def export_csv(ctx):
+    obj = ctx.obj['exporter']
+    config = obj.get_config()
+    try:
+        PROCS = config['download_threads']
+        EXPORT_FOLDER = Path(config['export_folder'])
+
+        # Get the current tickets
+        click.echo('Getting the list of tickets to read....')
+        export_csv = EXPORT_FOLDER.joinpath('tickets.csv')
+        tickets_files = list(EXPORT_FOLDER.joinpath('tickets').glob('**/ticket.json'))
+        click.echo('{} tickets to process'.format(len(tickets_files)))
+    
+
+
+        def process(ticket_file):
+            with ticket_file.open('r') as reader:
+                t = json.loads(reader.read())
+                return {
+                    'id': t['id'],
+                    'replies_count': t['replies_count'],
+                    'subject': t['subject'],
+                    'agent_replies_count': t['agent_replies_count'],
+                    'comments_count': t['comments_count'],
+                    'created_at': dateparser.parse(t['created_at']),
+                    'last_activity_at': dateparser.parse(t['last_activity_at']),
+                    'source': t['source']['email'] if t['source'] != None and 'email' in t['source'] else None,
+                    'attachments_count': len(t['content']['attachments']) if t['content']['attachments'] != None else 0,
+                    'labels': ', '.join(map(lambda l: l['name'], t['labels'])),
+                    'requester': t['requester']['email'],
+                    'team':  t['current_team_assignee']['team']['name'] if t['current_team_assignee'] != None and 'team' in t['current_team_assignee'] else 'Support' ,
+                    'cc': ', '.join((map(lambda x: x['email'], t['cc'])))
+                }
+
+        with Pool(PROCS) as p:
+            click.echo('Exporting tickets to {}...'.format(click.format_filename(str(export_csv))))
+            click.echo('Starting the extraction...')
+            results = p.map(process, tickets_files)
+
+        # Sort by created_at field
+        sorted_results = sorted(results, key=lambda t: t['created_at'])
+
+        # Export to CSV
+                
+        with export_csv.open('w') as csvfile:
+            fieldnames = [
+                'id',
+                'created_at',
+                'last_activity_at',
+                'subject',
+                'requester',
+                'cc',
+                'source',
+                'team',
+                'labels',
+                'replies_count',
+                'agent_replies_count',
+                'comments_count',
+                'attachments_count'
+            ]
+
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+            writer.writerows(sorted_results)
+        
+        click.echo('{} tickets processed'.format(len(sorted_results)))
+        
+    except Exception as e:
+        click.secho(str(e), fg='red')
+        ctx.abort()
