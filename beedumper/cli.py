@@ -344,12 +344,13 @@ def export_tickets(ctx, since_date):
     with click.progressbar(length= result.total_pages * TICKETS_PAGE,
                         label='Downloading tickets') as bar:
         while result:
-            bar.update(result.page * TICKETS_PAGE)
             tickets = result.data
             # click.echo('{:3d}|{:3d}|{:3d}'.format(result.page, result.total_pages, len(tickets)))
             for ticket in tickets:
                 save_ticket(EXPORT_FOLDER, ticket)
-            
+            # update() takes an increment, so advance by one page per loop
+            bar.update(TICKETS_PAGE)
+
             result = next(tickets_iterator, False)
 
 @cli.command(help="Exports all replies from the tickets stored")
